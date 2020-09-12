@@ -12,5 +12,5 @@ package-lock.json*
 *.ntvs*
 *.njsproj
 *.sln
-
+images/*
 images/setu/*.jpg

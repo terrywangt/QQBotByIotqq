@@ -27,30 +27,10 @@ var headers = {
   'Upgrade-Insecure-Requests': '1',
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
 }
-async function getPage(url) {//url='http://nsfwpicx.com/archives/1096.html'
-  console.log(`请求url:${url}`)
-  return await Axios.get(url, { headers })
-}
+const { readdir, stat } = require("fs").promises
+const { join } = require("path")
 
-async function downloadFile(url, filepath, name) {
-  if (!fs.existsSync(filepath)) {
-    fs.mkdirSync(filepath);
-  }
-  const mypath = path.resolve(filepath, name);
-  console.log(mypath, 'url===>', url)
-  return Axios({
-    url,
-    method: "GET",
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36',
-    },
-    responseType: 'arraybuffer'
-  }).then(
-    ({ data }) => {
-      fs.writeFileSync(mypath, data, 'binary')
-    }
-  );
-}
+
 module.exports = function (app) {
 
   router.get('/', async (ctx, next) => {
@@ -61,54 +41,6 @@ module.exports = function (app) {
 
     ctx.body = data.replace('iframeSrc', config.serverHost + '/v1/Login/GetQRcode')
 
-  })
-
-  router.get('/test', async (ctx, next) => {
-    var res = await downloadFile('https://www.kuaigolf.com/carryGolf/wap/%E9%9A%8F%E8%BA%AB%E9%AB%98%E5%B0%94%E5%A4%AB%E7%BD%91%E9%A1%B5wap2_12.jpg', 'images/qq', 'test.jpg')
-    ctx.body = "ok";
-    ;
-  })
-
-  router.get('/sepi', async (ctx, next) => {
-    var randomPage=parseInt(Math.random() * 189);
-    var url = `http://nsfwpicx.com/page/${randomPage}/`;
-    var res = await getPage(url);
-    let html_string = res.data.toString();
-    var $ = cheerio.load(html_string);
-    var pages = $('.masonry-item a');
-    pages.each((idx, elm) => {
-      // document.getElementById().getAttribute()
-      console.log(idx, elm.attribs['href'])
-    });
-
-    var pageUrl = pages[parseInt(Math.random() * pages.length) - 1].attribs['href']
-
-
-    var pageRes = await getPage(pageUrl);
-    html_string = pageRes.data.toString();
-    $ = cheerio.load(html_string);
-
-    var $imgs = $('.size-parsed a img')
-    var getImgUrl = (idx) => {
-      var src=$imgs[idx].attribs['src'].split('#')[0];
-      console.log('索引数：',idx,$imgs[idx].attribs['src'],src)
-      if(src.includes('='))
-      return src.split('=')[1]; 
-      else return src
-    }
-    var imgPromiseArr=[];
-    for (let index = 0; index < $imgs.length; index++) {
-      //imgPromiseArr.push(downloadFile(getImgUrl(index),, `images/setu/${new Date().toJSON().substring(0,10)}/`, `${parseInt( Math.random()*100000000)}.jpg`))
-      imgPromiseArr.push(downloadFile(getImgUrl(index), `images/setu/${randomPage}-${pageUrl.match(/(\d)*.html$/g)[0].replace('.html','')}`, `${parseInt( Math.random()*100000000)}.jpg`))
-    }
-    await Promise.all(imgPromiseArr);
-    // var imgPath = randomImg() || randomImg() || randomImg() || randomImg() || randomImg() || randomImg();
-    // console.log(imgPath, 'lenght:', $imgs.length)
-    // var fileres = await downloadFile(imgPath, `images/setu/${new Date().toJSON().substring(0,10)}/`, `${parseInt( Math.random()*100000000)}.jpg`);
-    // console.log('fileres:', fileres)
-    // console.log('imgPath:', imgPath)
-    ctx.body = 'ok';
-   
   })
   router.get('/send', async (ctx, next) => {
     var { type, content, isTest } = ctx.query; console.log(JSON.stringify(ctx.query))
@@ -142,7 +74,7 @@ module.exports = function (app) {
       ctx.query.content && await sendGroupMsg(ctx.query)
   })
   router.use('/api', require('./send').routes(), require('./send').allowedMethods())
-
+  router.use('', require('./loadImage').routes(), require('./loadImage').allowedMethods())
 
   app.use(router.routes(), router.allowedMethods())
 

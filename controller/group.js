@@ -64,9 +64,9 @@ function handleGroupMsg(msg) {
     console.log('色图：gogogo'+fromGroupId)
     if (data.Content && data.Content=="色图"&&fromGroupId=="87086214") {
      console.log('https://chp.shadiao.app/api.php')
-     axios.get('https://du.shadiao.app/api.php').then(res=>console.log(res.data))
-     axios.get('https://du.shadiao.app/api.php').then(res => {
-        sendGroupMsg({  toGroup:fromGroupId,content: `@${data.Content.replace('舔', '')} ${res.data}` })
+     axios.get('https://1day.wang/bot/random/image').then(res=>console.log(res.data))
+     axios.get('https://1day.wang/bot/random/image').then(res => {
+        sendGroupMsg({  toGroup:fromGroupId,content: `${res.data}` })
       });
       
     }
