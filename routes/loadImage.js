@@ -90,10 +90,20 @@ async function downloadFile(url, filepath, name) {
    var files=await getFiles(path.join(__dirname,'../images/setu'));
     var url=files[parseInt(files.length*Math.random())-1].split('images/setu')[1]
      ctx.body=`https://1day.wang/${path.join('images/setu',url)}`
-     if(tz){
-         ctx.status=301;
-         ctx.redirect(ctx.body);
-     }
+
+    var json= await Axios.post('https://hk.ft12.com/multi.php?m=index&a=urlCreate',
+    {
+       url:ctx.body,
+       type: 'r6f',
+       random:'398986204240629'
+     })
+     console.log(json.data)
+     ctx.body=json;
+    // ctx.body=json.data.url;
+    //  if(tz){
+    //      ctx.status=301;
+    //      ctx.redirect(ctx.body);
+    //  }
   })
   router.get('/sepi', async (ctx, next) => {
     var { page } = ctx.query;
