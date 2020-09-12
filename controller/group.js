@@ -66,7 +66,7 @@ function handleGroupMsg(msg) {
      console.log('https://chp.shadiao.app/api.php')
      axios.get('https://1day.wang/bot/random/image').then(res=>console.log(res.data))
      axios.get('https://1day.wang/bot/random/image').then(res => {
-        sendGroupMsg({  toGroup:fromGroupId,content: `${res.data}` })
+        sendGroupMsg({  toGroup:fromGroupId,content: `${res.data.includes('http')?res.data:'色图获取失败'}` })
       });
       
     }
