@@ -8,8 +8,7 @@ const CurrentQQ = config.CurrentQQ
 
 function callApi (name, params) {
   const url = `${WEB_API}/v1/LuaApiCaller?qq=${CurrentQQ}&funcname=${name}&timeout=10`
-  //params=JSON.stringify(params);
-  console.log(name, params)
+  console.log(name,params,url)
   if (params) return request.post(url, { body: params })
   return request.get(url)
 }

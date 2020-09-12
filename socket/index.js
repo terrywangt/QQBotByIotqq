@@ -10,6 +10,10 @@ socket.on('connect', function () {
     socket.emit('GetWebConn', config.CurrentQQ + '', (data) => {
         console.log(data);
     });
+  
+    socket.emit('GetWebConn', '2704523332', (data) => {
+      console.log(data);
+  });
 });
 
 //统一事件管理如好友进群事件 好友请求事件 退群等事件集合

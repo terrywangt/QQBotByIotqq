@@ -61,6 +61,16 @@ function handleGroupMsg(msg) {
         sendGroupMsg({ toGroup:fromGroupId, content: `@${data.Content.replace('喷', '')} ${res.data}` })
       });
     }
+    console.log('色图：gogogo'+fromGroupId)
+    if (data.Content && data.Content=="色图"&&fromGroupId=="87086214") {
+     console.log('https://chp.shadiao.app/api.php')
+     axios.get('https://du.shadiao.app/api.php').then(res=>console.log(res.data))
+     axios.get('https://du.shadiao.app/api.php').then(res => {
+        sendGroupMsg({  toGroup:fromGroupId,content: `@${data.Content.replace('舔', '')} ${res.data}` })
+      });
+      
+    }
+    //http://nsfwpicx.com/page/189/
     // // 只对指定群并且@消息回复
     // if (data && data.FromGroupId == config.groupCode && data.Content && data.MsgType == 'AtMsg') {
     //   let ctn = JSON.parse(data.Content)
