@@ -70,6 +70,16 @@ function handleGroupMsg(msg) {
       });
       
     }
+    //三群
+    if (data.Content && data.Content=="色图"&&fromGroupId=="85367555") {
+     console.log('https://chp.shadiao.app/api.php')
+     axios.get('https://1day.wang/bot/random/image').then(res=>console.log(res.data))
+     axios.get('https://1day.wang/bot/random/image').then(res => {
+        sendGroupMsg({  toGroup:fromGroupId,content: `${res.data.includes('http')?res.data:'色图获取失败'}` })
+      });
+      
+    }
+    
     //http://nsfwpicx.com/page/189/
     // // 只对指定群并且@消息回复
     // if (data && data.FromGroupId == config.groupCode && data.Content && data.MsgType == 'AtMsg') {
