@@ -111,7 +111,7 @@ router.get('/random/image', async (ctx, next) => {
         'Sec-Fetch-Mode': 'cors',
         'Sec-Fetch-Dest': 'empty',
         'Accept': '*/*',//265991096451086  398986588576629
-        //  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36',
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'Cookie': 'UM_distinctid=1748241548e210-086bd318f3f5dc-3323767-1fa400-1748241548f466',
         'Referer': 'https://www.ft12.com/',
@@ -120,6 +120,28 @@ router.get('/random/image', async (ctx, next) => {
     })
   ctx.body = res.data.url;
 })
+router.get('/getUrl', async (ctx, next) => {
+  var { url } = ctx.query;
+  ctx.body=url;
+  var res = await Axios.post(`https://hk.ft12.com/multi.php?m=index&a=urlCreate`,
+    `url=${ctx.body}&type=${['r6a','r6e','r6f','r6n'][parseInt(Math.random()*4)]}&random=${parseInt(Math.random() * 11398986588576629)}&token=`
+    , {
+      headers: {
+        'Connection': 'keep-alive',
+        'Sec-Fetch-Site': 'same-site',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Dest': 'empty',
+        'Accept': '*/*',//265991096451086  398986588576629
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Cookie': 'UM_distinctid=1748241548e210-086bd318f3f5dc-3323767-1fa400-1748241548f466',
+        'Referer': 'https://www.ft12.com/',
+        'Origin': 'https://www.ft12.com'
+      }
+    })
+  ctx.body = res.data.url;
+})
+
 router.get('/sepi', async (ctx, next) => {
   var { page } = ctx.query;
   var randomPage = page || parseInt(Math.random() * 190);
