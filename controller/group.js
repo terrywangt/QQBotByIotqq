@@ -43,9 +43,9 @@ function handleGroupMsg(msg) {
     const data = msg.CurrentPacket.Data;
     var fromGroupId=data.FromGroupId;
     if (!config.groupCodeArr.includes(fromGroupId)||!data) return false;
-    console.log(fromGroupId,JSON.stringify(data))
+    console.log('群消息：',fromGroupId,JSON.stringify(data))
      
-    if (data.Content && /.*[喷,舔]+.*$/.test(data.Content)) {
+    if (data.Content && /.*[喷,舔]+.*$/.test(data.Content)) {console.log('涛涛涛涛涛涛涛涛涛涛',JSON.parse(data.Content).UserID[0])
       data.Content.includes('UserID')&&data.Content.includes('舔') &&axios.get('https://chp.shadiao.app/api.php').then(res => {
         sendGroupMsg({ toGroup:fromGroupId,content: `${res.data}` ,atUser: JSON.parse(data.Content).UserID[0]})
       });
