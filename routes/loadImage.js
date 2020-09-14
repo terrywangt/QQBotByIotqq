@@ -92,10 +92,11 @@ router.get('/', async (ctx, next) => {
 
 
 router.get('/random/image', async (ctx, next) => {
-  var { tz } = ctx.query;
-  var files = await getFiles(path.join(__dirname, '../images/setu')); console.log(files)
+  var { tz ,mulu} = ctx.query;
+  if(!mulu)mulu='images/setu';
+  var files = await getFiles(path.join(__dirname, '../'+mulu)); console.log(files)
   var url = files[parseInt(files.length * Math.random()) - 1].split('setu')[1]
-  ctx.body = `https://1day.wang/${path.join('images/setu', url)}`
+  ctx.body = `https://1day.wang/${path.join(mulu, url)}`
   ctx.body = ctx.body.replace(/\\/g, '/')
   if (tz) {
     ctx.status = 301;
