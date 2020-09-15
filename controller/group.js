@@ -38,48 +38,56 @@ const { default: axios } = require('axios')
   CurrentQQ: 235252 }
 
  */
-function handleGroupMsg(msg) {
+async function handleGroupMsg(msg) {
   try {
     const data = msg.CurrentPacket.Data;
+
     var fromGroupId=data.FromGroupId;
     if (!config.groupCodeArr.includes(fromGroupId)||!data) return false;
     console.log('群消息：',fromGroupId,JSON.stringify(data))
      
-    if (data.Content && /.*[喷,舔]+.*$/.test(data.Content)) {console.log('涛涛涛涛涛涛涛涛涛涛',JSON.parse(data.Content).UserID[0])
+    if (data.Content && /.*[喷,舔]+.*$/.test(data.Content)) {
       data.Content.includes('UserID')&&data.Content.includes('舔') &&axios.get('https://chp.shadiao.app/api.php').then(res => {
         sendGroupMsg({ toGroup:fromGroupId,content: `${res.data}` ,atUser: JSON.parse(data.Content).UserID[0]})
       });
-      data.Content.includes('UserID')&&data.Content.includes('喷') && axios.get('https://du.shadiao.app/api.php').then(res => {
-        sendGroupMsg({  toGroup:fromGroupId,content: `${res.data}` ,atUser: JSON.parse(data.Content).UserID[0]})
+      data.Content.includes('UserID') && data.Content.includes('喷') && axios.get('https://du.shadiao.app/api.php').then(res => {
+        sendGroupMsg({ toGroup: fromGroupId, content: `${res.data}`, atUser: JSON.parse(data.Content).UserID[0] })
       });
-    }
-    if (data.Content && /^[喷,舔]+.*$/.test(data.Content)) {
-      data.Content.includes('舔') && axios.get('https://chp.shadiao.app/api.php').then(res => {
-        sendGroupMsg({  toGroup:fromGroupId,content: `@${data.Content.replace('舔', '')} ${res.data}` })
-      });
-      data.Content.includes('喷') && axios.get('https://du.shadiao.app/api.php').then(res => {
-        sendGroupMsg({ toGroup:fromGroupId, content: `@${data.Content.replace('喷', '')} ${res.data}` })
-      });
-    }
-    console.log('色图：gogogo'+fromGroupId)
-    if (data.Content && data.Content=="色图"&&fromGroupId=="87086214") {
-     console.log('https://chp.shadiao.app/api.php')
-     axios.get('https://1day.wang/bot/random/image').then(res=>console.log(res.data))
-     axios.get('https://1day.wang/bot/random/image').then(res => {
-        sendGroupMsg({  toGroup:fromGroupId,content: `${res.data.includes('http')?res.data:'色图获取失败'}` })
-      });
-      
-    }
-    //三群
-    if (data.Content && data.Content=="色图"&&fromGroupId=="85367555") {
-     console.log('https://chp.shadiao.app/api.php')
-     axios.get('https://1day.wang/bot/random/image').then(res=>console.log(res.data))
-     axios.get('https://1day.wang/bot/random/image').then(res => {
-        sendGroupMsg({  toGroup:fromGroupId,content: `${res.data.includes('http')?res.data:'色图获取失败'}` })
-      });
-      
     }
     
+    if (data.Content && /^[喷,舔]+.*$/.test(data.Content)) {
+      data.Content.includes('舔') && axios.get('https://chp.shadiao.app/api.php').then(res => {
+        sendGroupMsg({ toGroup: fromGroupId, content: `@${data.Content.replace('舔', '')} ${res.data}` })
+      });
+      data.Content.includes('喷') && axios.get('https://du.shadiao.app/api.php').then(res => {
+        sendGroupMsg({ toGroup: fromGroupId, content: `@${data.Content.replace('喷', '')} ${res.data}` })
+      });
+    }
+
+   
+    //三群 ，测试群
+    if (fromGroupId == "85367555"||  fromGroupId == "87086214" ) {
+
+      if (data.Content && data.Content==="色图") {
+        axios.get('https://1day.wang/bot/random/image').then(res => {
+          sendGroupMsg({ toGroup: fromGroupId, content: `${res.data.includes('http') ? res.data : '色图获取失败'}` })
+        });
+      }
+      if (data.Content && /^色图\*[\d]+$/.test(data.Content)) {
+        var num=parseInt(data.Content.match(/色图\*([0-9]+)/)[1])||1;if(num>10||num<=0)num=1;
+        var promises= Array(num).fill(0).map(m=>axios.get('https://1day.wang/bot/random/image'));
+        var urls=(await Promise.all(promises)).map(m=>m.data).join('\r\n\r\n');
+        sendGroupMsg({ toGroup: fromGroupId, content: `${urls.includes('http') ? urls : '色图获取失败'}` })
+      }
+      
+      if (data.Content && data.Content.includes("色视频")) {
+        axios.get('https://1day.wang/bot/random/image?mulu=seshipin').then(res => {
+          sendGroupMsg({ toGroup: fromGroupId, content: `${res.data.includes('http') ? res.data : '色视频获取失败'}` })
+        });
+      }
+
+    }
+
     //http://nsfwpicx.com/page/189/
     // // 只对指定群并且@消息回复
     // if (data && data.FromGroupId == config.groupCode && data.Content && data.MsgType == 'AtMsg') {
