@@ -13,6 +13,7 @@ const { request } = require('http')
 const cheerio = require('cheerio')
 var https = require('https');
 const { match } = require('assert')
+const { promisify } = require('util');
 // Axios.defaults.proxy = {
 //   host: '127.0.0.1',
 //   port: 1089,
@@ -53,13 +54,12 @@ async function getPage(url) {//url='http://nsfwpicx.com/archives/1096.html'
 }
 
 async function downloadFile(url, filepath, name) {
-  if (!fs.existsSync(filepath)) {
-    fs.mkdirSync(filepath);
+  if (!(await promisify(fs.exists)(filepath))) {
+    await promisify(fs.mkdirSync)(filepath);
   }
-
   const mypath = path.resolve(filepath, name);
   try {
-    var res = fs.statSync(mypath);
+    var res = await promisify(fs.stat)(mypath);
     if (res.isFile())
       return;
   } catch (e) {
@@ -82,21 +82,14 @@ async function downloadFile(url, filepath, name) {
 
 
 /////////////////////////////////////router///////////////////////////
-router.get('/', async (ctx, next) => {
-  const data = fs.readFileSync(path.join(__dirname, '../views/index.html')).toString()
-  //http://127.0.0.1:8887/v1/Login/GetQRcode
-  ctx.type = 'text/html; charset=utf-8'
-  ctx.body = data.replace('iframeSrc', config.serverHost + '/v1/Login/GetQRcode')
-})
-
 
 router.get('/random/image', async (ctx, next) => {
-  var { tz ,mulu} = ctx.query;
-  if(!mulu)mulu='setu';
-  var files = await getFiles(path.join(__dirname, '../images/'+mulu));
+  var { tz, mulu } = ctx.query;
+  if (!mulu) mulu = 'setu';
+  var files = await getFiles(path.join(__dirname, '../images/' + mulu));
   var url = files[parseInt(files.length * Math.random())].split(mulu)[1];
   ctx.body = `https://1day.wang/${path.join(`images/${mulu}`, url)}`
-  ctx.body = ctx.body.replace(/\\/g, '/');console.log(ctx.body)
+  ctx.body = ctx.body.replace(/\\/g, '/'); console.log(ctx.body)
   if (tz) {
     ctx.status = 301;
     ctx.redirect(ctx.body);
@@ -122,9 +115,9 @@ router.get('/random/image', async (ctx, next) => {
 })
 router.get('/getUrl', async (ctx, next) => {
   var { url } = ctx.query;
-  ctx.body=url;
+  ctx.body = url;
   var res = await Axios.post(`https://hk.ft12.com/multi.php?m=index&a=urlCreate`,
-    `url=${ctx.body}&type=${['r6a','r6e','r6f','r6n'][parseInt(Math.random()*4)]}&random=${parseInt(Math.random() * 11398986588576629)}&token=`
+    `url=${ctx.body}&type=${['r6a', 'r6e', 'r6f', 'r6n'][parseInt(Math.random() * 4)]}&random=${parseInt(Math.random() * 11398986588576629)}&token=`
     , {
       headers: {
         'Connection': 'keep-alive',
@@ -170,12 +163,12 @@ router.get('/sepi', async (ctx, next) => {
       return src.split('=')[1];
     else return src
   }
-  var imgPromiseArr = [];var error=[]
+  var imgPromiseArr = []; var error = []
   for (let index = 0; index < $imgs.length; index++) {
     var imgFileName = getImgUrl(index);
     //imgPromiseArr.push(downloadFile(getImgUrl(index),, `images/setu/${new Date().toJSON().substring(0,10)}/`, `${parseInt( Math.random()*100000000)}.jpg`))
-    imgPromiseArr.push(downloadFile(imgFileName, `images/setu/${randomPage}-${pageUrl.match(/(\d)*.html$/g)[0].replace('.html', '')}`, `${imgFileName.match(/\/([a-z,A-Z,0-9]+).jpg$/g)[0]}`.replace('/','')))
-  error.push({imgFileName,name:`${imgFileName.match(/\/([a-z,A-Z,0-9]+).jpg$/g)[0]}`.replace('/','')})
+    imgPromiseArr.push(downloadFile(imgFileName, `images/setu/${randomPage}-${pageUrl.match(/(\d)*.html$/g)[0].replace('.html', '')}`, `${imgFileName.match(/\/([a-z,A-Z,0-9]+).jpg$/g)[0]}`.replace('/', '')))
+    error.push({ imgFileName, name: `${imgFileName.match(/\/([a-z,A-Z,0-9]+).jpg$/g)[0]}`.replace('/', '') })
   }
   await Promise.all(imgPromiseArr);
   // var imgPath = randomImg() || randomImg() || randomImg() || randomImg() || randomImg() || randomImg();

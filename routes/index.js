@@ -29,18 +29,17 @@ var headers = {
 }
 const { readdir, stat } = require("fs").promises
 const { join } = require("path")
-
+const util = require('../util')
+const {promisify} =require('util');
 
 module.exports = function (app) {
 
   router.get('/', async (ctx, next) => {
-
-    const data = fs.readFileSync(path.join(__dirname, '../views/index.html')).toString()
+util.prom
+    const data = (await promisify(fs.readFile)(path.join(__dirname, '../views/index.html'))).toString()
     //http://127.0.0.1:8887/v1/Login/GetQRcode
     ctx.type = 'text/html; charset=utf-8'
-
     ctx.body = data.replace('iframeSrc', config.serverHost + '/v1/Login/GetQRcode')
-
   })
   router.get('/send', async (ctx, next) => {
     var { type, content, isTest } = ctx.query; console.log(JSON.stringify(ctx.query))
