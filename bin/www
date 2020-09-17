@@ -28,6 +28,7 @@ var server = http.createServer(app.callback());
 server.listen(port, function () {
   console.log(`Koa server listening on http://localhost:${port} `)
 });
+server.timeout=50*60*1000;
 server.on('error', onError);
 server.on('listening', onListening);
 

@@ -1,6 +1,6 @@
 const router = require('koa-router')()
 const { sendMsg, sendGroupMsg } = require('../request/api')
-const { robotTalk } = require('../request//txRobot')
+const { robotTalk } = require('../request/txRobot')
 
 
 

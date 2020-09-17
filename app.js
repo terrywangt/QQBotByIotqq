@@ -2,14 +2,20 @@ const Koa = require('koa')
 const app = new Koa()
 const json = require('koa-json')
 // const onerror = require('koa-onerror')
+const views = require('koa-views')
 const bodyparser = require('koa-bodyparser')
 // const logger = require('koa-logger')
 var cors = require('koa-cors');
-
+const path = require('path')
+app.cache={};
 app.use(bodyparser())
 app.use(json())
 // app.use(logger())
 app.use(require('koa-static')(__dirname + '/public'))
+// 加载模板引擎
+app.use(views(path.join(__dirname, './views'), {
+  extension: 'ejs'
+}))
 
 
 // logger

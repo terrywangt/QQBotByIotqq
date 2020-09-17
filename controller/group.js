@@ -42,19 +42,19 @@ async function handleGroupMsg(msg) {
   try {
     const data = msg.CurrentPacket.Data;
 
-    var fromGroupId=data.FromGroupId;
-    if (!config.groupCodeArr.includes(fromGroupId)||!data) return false;
-    console.log('群消息：',fromGroupId,JSON.stringify(data))
-     
+    var fromGroupId = data.FromGroupId;
+    if (!config.groupCodeArr.includes(fromGroupId) || !data) return false;
+    console.log('群消息：', fromGroupId, JSON.stringify(data))
+
     if (data.Content && /.*[喷,舔]+.*$/.test(data.Content)) {
-      data.Content.includes('UserID')&&data.Content.includes('舔') &&axios.get('https://chp.shadiao.app/api.php').then(res => {
-        sendGroupMsg({ toGroup:fromGroupId,content: `${res.data}` ,atUser: JSON.parse(data.Content).UserID[0]})
+      data.Content.includes('UserID') && data.Content.includes('舔') && axios.get('https://chp.shadiao.app/api.php').then(res => {
+        sendGroupMsg({ toGroup: fromGroupId, content: `${res.data}`, atUser: JSON.parse(data.Content).UserID[0] })
       });
       data.Content.includes('UserID') && data.Content.includes('喷') && axios.get('https://du.shadiao.app/api.php').then(res => {
         sendGroupMsg({ toGroup: fromGroupId, content: `${res.data}`, atUser: JSON.parse(data.Content).UserID[0] })
       });
     }
-    
+
     if (data.Content && /^[喷,舔]+.*$/.test(data.Content)) {
       data.Content.includes('舔') && axios.get('https://chp.shadiao.app/api.php').then(res => {
         sendGroupMsg({ toGroup: fromGroupId, content: `@${data.Content.replace('舔', '')} ${res.data}` })
@@ -64,22 +64,36 @@ async function handleGroupMsg(msg) {
       });
     }
 
-   
-    //三群 ，测试群
-    if (fromGroupId == "85367555"||  fromGroupId == "87086214" ) {
 
-      if (data.Content && data.Content==="色图") {
+    //三群 ，测试群
+    if (fromGroupId == "85367555" || fromGroupId == "87086214") {
+
+      if (data.Content && data.Content === "色图") {
         axios.get('https://1day.wang/bot/random/image').then(res => {
           sendGroupMsg({ toGroup: fromGroupId, content: `${res.data.includes('http') ? res.data : '色图获取失败'}` })
         });
       }
       if (data.Content && /^色图\*[\d]+$/.test(data.Content)) {
-        var num=parseInt(data.Content.match(/色图\*([0-9]+)/)[1])||1;if(num>10||num<=0)num=1;
-        var promises= Array(num).fill(0).map(m=>axios.get('https://1day.wang/bot/random/image'));
-        var urls=(await Promise.all(promises)).map(m=>m.data).join('\r\n\r\n');
+        var num = parseInt(data.Content.match(/色图\*([0-9]+)/)[1]) || 1; if (num > 50 || num <= 0) num = 1;
+        var promises = Array(num).fill(0).map(m => axios.get('https://1day.wang/bot/random/image').catch(e => "err"));
+        var urls = (await Promise.all(promises)).map(m => m.data).join('\r\n\r\n');
         sendGroupMsg({ toGroup: fromGroupId, content: `${urls.includes('http') ? urls : '色图获取失败'}` })
       }
-      
+
+
+      if (data.Content && data.Content.includes("鉴黄")) {
+        var num = 1;
+        if (data.Content && /^鉴黄\*[\d]+$/.test(data.Content)){
+          num = parseInt(data.Content.match(/鉴黄\*([0-9]+)/)[1]) || 1; if (num > 50 || num <= 0) num = 1;
+        }
+         
+        var promises = Array(num).fill(0).map(m => axios.get('https://1day.wang/bot/random/image?isSkip=1').catch(e => "err"));
+        var urls = (await Promise.all(promises)).map(m => m.data).join('|');console.log('urls:',urls)
+       var res= await axios.get(`https://1day.wang/bot/getUrl?url=`+encodeURIComponent(`https://1day.wang/bot/jianhuang?urls=${urls}`))
+       console.log(res.data)
+        sendGroupMsg({ toGroup: fromGroupId, content: `${res.data.includes('http') ? res.data : '获取失败'}` })
+      }
+
       if (data.Content && data.Content.includes("色视频")) {
         axios.get('https://1day.wang/bot/random/image?mulu=seshipin').then(res => {
           sendGroupMsg({ toGroup: fromGroupId, content: `${res.data.includes('http') ? res.data : '色视频获取失败'}` })

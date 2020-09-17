@@ -11,6 +11,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "debug": "^2.6.3",
+    "ejs": "^3.1.5",
     "http-request-parser": "^2.0.0-alpha",
     "koa": "^2.2.0",
     "koa-bodyparser": "^3.2.0",

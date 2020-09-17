@@ -14,11 +14,10 @@ const cheerio = require('cheerio')
 var https = require('https');
 const { match } = require('assert')
 const { promisify } = require('util');
-// Axios.defaults.proxy = {
-//   host: '127.0.0.1',
-//   port: 1089,
-// }
-var headers = {
+const { readdir, stat, mkdir } = require("fs").promises
+const { join } = require("path")
+let ejs = require('ejs');
+const headers = {
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
   'Accept-Encoding': 'gzip, deflate',
   'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
@@ -28,8 +27,6 @@ var headers = {
   'Upgrade-Insecure-Requests': '1',
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
 }
-const { readdir, stat } = require("fs").promises
-const { join } = require("path")
 
 const dirs = async path => {
   let dirs = []
@@ -54,17 +51,19 @@ async function getPage(url) {//url='http://nsfwpicx.com/archives/1096.html'
 }
 
 async function downloadFile(url, filepath, name) {
-  if (!(await promisify(fs.exists)(filepath))) {
-    await promisify(fs.mkdirSync)(filepath);
+  if (!fs.existsSync(filepath)) {
+    fs.mkdirSync(filepath);
   }
+
   const mypath = path.resolve(filepath, name);
   try {
-    var res = await promisify(fs.stat)(mypath);
+    var res = fs.statSync(mypath);
     if (res.isFile())
       return;
   } catch (e) {
 
   }
+
   return Axios({
     url,
     method: "GET",
@@ -74,50 +73,67 @@ async function downloadFile(url, filepath, name) {
     responseType: 'arraybuffer'
   }).then(
     ({ data }) => {
-      fs.writeFileSync(mypath, data, 'binary')
-    }
+      fs.writeFileSync(mypath, data, 'binary'); console.log('下载保存成功！', mypath)
+    }, (err) => console.log('下载失败', url, mypath)
   );
 }
 
 
 
 /////////////////////////////////////router///////////////////////////
-
+//http://s.1day.wang:3090/setu/page?num=50
+router.get('/jianhuang',async (ctx,next)=>{
+  var {urls}=ctx.query;
+  var arr=urls.split('|')
+  await ctx.render('../views/jianhuang.ejs', {arr});
+  //ctx.body="xxx";
+} )
 router.get('/random/image', async (ctx, next) => {
-  var { tz, mulu } = ctx.query;
-  if (!mulu) mulu = 'setu';
-  var files = await getFiles(path.join(__dirname, '../images/' + mulu));
-  var url = files[parseInt(files.length * Math.random())].split(mulu)[1];
-  ctx.body = `https://1day.wang/${path.join(`images/${mulu}`, url)}`
-  ctx.body = ctx.body.replace(/\\/g, '/'); console.log(ctx.body)
-  if (tz) {
-    ctx.status = 301;
-    ctx.redirect(ctx.body);
+  try {
+    var { 
+      tz, //是否直接302跳转
+      mulu,//目录地址
+      isSkip //是否跳过短域名嵌套
+    } = ctx.query;
+    if (!mulu) mulu = 'setu';
+    var files = ctx.app.cache.files || (await getFiles(path.join(__dirname, '../images/' + mulu)));
+    console.log('fileCount=>>>>:', files.length)
+    ctx.app.cache.files = files;
+    var url = files[parseInt(files.length * Math.random())].split(mulu)[1];
+    ctx.body = `https://1day.wang/${path.join(`images/${mulu}`, url)}`
+    ctx.body = ctx.body.replace(/\\/g, '/'); console.log(ctx.body)
+    if (tz) {
+      ctx.status = 301;
+      ctx.redirect(ctx.body);
+    }
+    if(isSkip)return;
+    var res = await Axios.post(`https://hk.ft12.com/multi.php?m=index&a=urlCreate`,
+      `url=${ctx.body}&type=r6e&random=${parseInt(Math.random() * 113989865885766290)}&token=`
+      , {
+        headers: {
+          'Connection': 'keep-alive',
+          'Sec-Fetch-Site': 'same-site',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Dest': 'empty',
+          'Accept': '*/*',//265991096451086  398986588576629
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36',
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'Cookie': 'UM_distinctid=1748241548e210-086bd318f3f5dc-3323767-1fa400-1748241548f466',
+          'Referer': 'https://www.ft12.com/',
+          'Origin': 'https://www.ft12.com'
+        }
+      })
+    ctx.body = res.data.url;
+  } catch (error) {
+    ctx.body = "error";
   }
 
-  var res = await Axios.post(`https://hk.ft12.com/multi.php?m=index&a=urlCreate`,
-    `url=${ctx.body}&type=r6e&random=${parseInt(Math.random() * 11398986588576629)}&token=`
-    , {
-      headers: {
-        'Connection': 'keep-alive',
-        'Sec-Fetch-Site': 'same-site',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Dest': 'empty',
-        'Accept': '*/*',//265991096451086  398986588576629
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Cookie': 'UM_distinctid=1748241548e210-086bd318f3f5dc-3323767-1fa400-1748241548f466',
-        'Referer': 'https://www.ft12.com/',
-        'Origin': 'https://www.ft12.com'
-      }
-    })
-  ctx.body = res.data.url;
 })
 router.get('/getUrl', async (ctx, next) => {
   var { url } = ctx.query;
   ctx.body = url;
   var res = await Axios.post(`https://hk.ft12.com/multi.php?m=index&a=urlCreate`,
-    `url=${ctx.body}&type=${['r6a', 'r6e', 'r6f', 'r6n'][parseInt(Math.random() * 4)]}&random=${parseInt(Math.random() * 11398986588576629)}&token=`
+    `url=${ctx.body}&type=${['r6a', 'r6e', 'r6f', 'r6n'][parseInt(Math.random() * 4)]}&random=${parseInt(Math.random() * 113989865885766290)}&token=`
     , {
       headers: {
         'Connection': 'keep-alive',
@@ -133,10 +149,23 @@ router.get('/getUrl', async (ctx, next) => {
       }
     })
   ctx.body = res.data.url;
+  if(!ctx.body.includes('http'))ctx.body=(await Axios('https://1day.wang/bot/getUrl?url='+url)).data;
+  if(!ctx.body.includes('http'))ctx.body=(await Axios('https://1day.wang/bot/getUrl?url='+url)).data;
+  if(!ctx.body.includes('http'))ctx.body=(await Axios('https://1day.wang/bot/getUrl?url='+url)).data;
+  if(!ctx.body.includes('http'))ctx.body=(await Axios('https://1day.wang/bot/getUrl?url='+url)).data;
+  if(!ctx.body.includes('http'))ctx.body=(await Axios('https://1day.wang/bot/getUrl?url='+url)).data;
 })
-
+router.get('/downall', async (ctx, netx) => {
+  var { idx } = ctx.query;
+  var i = 0;
+  var res = await Promise.all(new Array(100).fill(0).map(f => {
+    i++;
+    return Axios.get(`https://1day.wang/bot/sepi?page=${i}&idx=${idx}`);
+  }));
+  ctx.body = res.map(m => m.data).join('\r\n');
+})
 router.get('/sepi', async (ctx, next) => {
-  var { page } = ctx.query;
+  var { page, idx } = ctx.query;
   var randomPage = page || parseInt(Math.random() * 190);
   var url = `http://nsfwpicx.com/page/${randomPage}/`;
   var res = await getPage(url);
@@ -148,7 +177,7 @@ router.get('/sepi', async (ctx, next) => {
     console.log(idx, elm.attribs['href'])
   });
 
-  var pageUrl = pages[parseInt(Math.random() * pages.length) - 1].attribs['href']
+  var pageUrl = pages[idx || parseInt(Math.random() * pages.length)].attribs['href']
 
 
   var pageRes = await getPage(pageUrl);
@@ -167,8 +196,8 @@ router.get('/sepi', async (ctx, next) => {
   for (let index = 0; index < $imgs.length; index++) {
     var imgFileName = getImgUrl(index);
     //imgPromiseArr.push(downloadFile(getImgUrl(index),, `images/setu/${new Date().toJSON().substring(0,10)}/`, `${parseInt( Math.random()*100000000)}.jpg`))
-    imgPromiseArr.push(downloadFile(imgFileName, `images/setu/${randomPage}-${pageUrl.match(/(\d)*.html$/g)[0].replace('.html', '')}`, `${imgFileName.match(/\/([a-z,A-Z,0-9]+).jpg$/g)[0]}`.replace('/', '')))
-    error.push({ imgFileName, name: `${imgFileName.match(/\/([a-z,A-Z,0-9]+).jpg$/g)[0]}`.replace('/', '') })
+    imgPromiseArr.push(downloadFile(imgFileName, `images/setu/${randomPage}-${pageUrl.match(/(\d)*.html$/gi)[0].replace('.html', '')}`, `${imgFileName.match(/[^\/]+.[jpg,png,jpeg,bmp]$/i)[0]}`.replace('/', '')))
+    error.push({ imgFileName, name: `${imgFileName.match(/[^\/]+.[jpg,png,jpeg,bmp]$/i)[0]}`.replace('/', '') })
   }
   await Promise.all(imgPromiseArr);
   // var imgPath = randomImg() || randomImg() || randomImg() || randomImg() || randomImg() || randomImg();

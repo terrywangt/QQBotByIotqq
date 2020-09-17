@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>鉴黄</title>
+</head>
+<body>
+    <h1>鉴黄</h1>
+    <h2>净化网络黄图，人人有责</h2>
+    <h3>选A、B删除图片，选C或不选不改变图片</h3>
+    <ul>
+        <% var i=0;%>
+        <%  arr.forEach(function(item){i++; %>
+           
+        <li>
+            <h2>鉴黄<%=i%></h2>
+            <%if(item.includes('http')){%>
+            <img src="<%=item%>"/>
+            <br/>
+            👆上图为：
+            <input type="button" value="A:黄图" />
+            <input type="button" value="B:垃圾图" />
+            <input type="button" value="C:美女图" />
+            <%}else{%>
+                图片获取失败
+                <%}%>
+        </li>
+        <% }); %>
+      </ul>
+</body>
+</html>
