@@ -65,8 +65,11 @@ async function handleGroupMsg(msg) {
     }
 
 
-    //三群 ，测试群
-    if (fromGroupId == "85367555" || fromGroupId == "87086214") {
+     
+    if (
+     // fromGroupId == "85367555" //三群
+     fromGroupId == "87086214"//测试群
+    ) {
 
       if (data.Content && data.Content === "色图") {
         axios.get('https://1day.wang/bot/random/image').then(res => {

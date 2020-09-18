@@ -81,8 +81,35 @@ async function downloadFile(url, filepath, name) {
 
 
 /////////////////////////////////////router///////////////////////////
+router.get('/setu/grouplist',async (ctx,next)=>{
+  var {subdirs,mulu}=ctx.app.cache;
+  var dir=path.join(__dirname, `../images/${(mulu||'setu')}/`);
+  if(!subdirs) subdirs = await readdir(dir);
+  ctx.app.cache=subdirs;
+  var groupPaths=new Array(10).fill(1).map(m=>path.join(dir,subdirs[parseInt(Math.random()*subdirs.length)]))
+  var arr=[];
+  for (let idx = 0; idx < groupPaths.length; idx++) {
+    const groupPath = groupPaths[idx];
+    var urls=(await getFiles(groupPath)).map(m=>`https://1day.wang/${m.replace('/root/QQBotByIotqq','')}`);
+    urls.length&&arr.push(urls[parseInt(Math.random())*urls.length])
+  }
+  await ctx.render('../views/grouplist.ejs', {arr});
+})
+
+router.get('/setu/group',async (ctx,next)=>{
+  var {groupNo}=ctx.query;
+  var {subdirs,mulu}=ctx.app.cache;
+  var dir=path.join(__dirname, `../images/${(mulu||'setu')}/`);
+  if(!subdirs) subdirs = await readdir(dir);
+  ctx.app.cache=subdirs;
+ 
+  var groupPath=path.join(dir,(groupNo||subdirs[parseInt(Math.random()*subdirs.length)])); console.log('groupPath:',groupPath,groupNo)
+  var arr=(await getFiles(groupPath)).map(m=>`https://1day.wang/${m.replace('/root/QQBotByIotqq','')}`);
+  await ctx.render('../views/group.ejs', {arr});
+})
+
 //http://s.1day.wang:3090/setu/page?num=50
-router.get('/jianhuang',async (ctx,next)=>{
+router.get('/jianhuang1',async (ctx,next)=>{
   var {urls}=ctx.query;
   var arr=urls.split('|')
   await ctx.render('../views/jianhuang.ejs', {arr});
